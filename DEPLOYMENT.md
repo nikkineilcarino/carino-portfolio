@@ -9,7 +9,9 @@ This portfolio is prepared for Vercel deployment from the repository root.
 - Git branch: `main`
 - Remote: `https://github.com/nikkineilcarino/carino-portfolio.git`
 - Package manager lockfile: `package-lock.json`
-- Environment variables required: none
+- Environment variables required for current safe fallback behavior: none
+- Optional environment variables for hosted AI answers: see
+  [AI Assistant Deployment](#ai-assistant-deployment)
 - Production build command: `npm run build`
 - Local production start command: `npm run start`
 
@@ -36,6 +38,33 @@ Use these settings when importing the GitHub repository into Vercel:
 
 No `vercel.json` file is required for the current setup.
 
+## AI Assistant Deployment
+
+The portfolio AI assistant is built to work without hosted AI provider
+credentials. If no provider environment variables are configured, the assistant
+uses the local safe-answer fallback for approved portfolio questions and returns
+a clear unavailable message for broader general questions.
+
+No environment variables are required for that fallback mode.
+
+To enable hosted AI answers later, add these variables in the Vercel project
+settings, not in the repository:
+
+```text
+AI_PROVIDER=openai-compatible
+AI_API_KEY=[set in Vercel only]
+AI_MODEL=[provider model name]
+AI_BASE_URL=https://api.openai.com/v1/chat/completions
+```
+
+Notes:
+
+- `AI_API_KEY` must never be committed to Git.
+- `AI_BASE_URL` is optional if the default OpenAI-compatible endpoint is used.
+- Keep all AI provider calls server-side through `app/api/portfolio-ai/route.ts`.
+- The assistant can be deployed before hosted AI is configured because the local
+  fallback already handles approved portfolio questions.
+
 ## Pre-Deployment Checklist
 
 Run these checks before deploying:
@@ -58,6 +87,8 @@ Then verify:
 - `/resume/Nikki_Neil_Carino_CV.pdf` returns the resume PDF.
 - `/images/profile/nikki-neil-carino-profile.jpg` returns the approved profile image.
 - The browser icon loads from the approved profile image asset.
+- The `Ask AI` assistant opens, shows `Thinking...`, answers approved portfolio
+  questions, and handles missing hosted AI configuration gracefully.
 - No private project screenshots, fake certificate images, fake live demos, or
   fake GitHub links are added.
 

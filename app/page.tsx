@@ -1,5 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { PortfolioAiAssistant } from "@/components/ai/portfolio-ai-assistant";
 import { AboutSection } from "@/components/sections/about-section";
 import { CertificationsSection } from "@/components/sections/certifications-section";
 import { ContactSection } from "@/components/sections/contact-section";
@@ -49,6 +50,7 @@ export default function Home() {
         </Reveal>
       </main>
       <Footer />
+      <PortfolioAiAssistant />
     </div>
   );
 }
