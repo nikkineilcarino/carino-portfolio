@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Bot, Sparkles, X } from "lucide-react";
+import { Bot, RotateCcw, Sparkles, X } from "lucide-react";
 import { PortfolioAiInput } from "@/components/ai/portfolio-ai-input";
 import {
   PortfolioAiMessage,
   type PortfolioAiMessageRole,
 } from "@/components/ai/portfolio-ai-message";
 import { Button } from "@/components/ui/button";
+import {
+  createTextMessage,
+  validateAssistantMessage,
+  type AssistantMessage,
+} from "@/lib/ai/portfolio-response";
 
 type PortfolioAiResponse = {
   answer?: unknown;
+  message?: unknown;
   mode?: unknown;
 };
 
@@ -18,16 +24,34 @@ type PortfolioUiMessage = {
   id: string;
   role: PortfolioAiMessageRole;
   content: string;
+  message?: AssistantMessage;
 };
+
+const INITIAL_ASSISTANT_MESSAGE = createTextMessage(
+  "Hi! I'm Nikki's portfolio AI. Ask me about my experience, skills, projects, education, resume, or the type of opportunities I'm looking for.",
+);
 
 const INITIAL_MESSAGE: PortfolioUiMessage = {
   id: "initial-assistant-message",
   role: "assistant",
-  content:
-    "Hi, I can answer questions about Nikki's portfolio, CV, skills, projects, and contact details.",
+  content: INITIAL_ASSISTANT_MESSAGE.message,
+  message: INITIAL_ASSISTANT_MESSAGE,
 };
 
+const SUGGESTED_QUESTIONS = [
+  "Who are you?",
+  "What are your strongest skills?",
+  "Tell me about your internship.",
+  "Tell me about RecycLens.",
+  "Why should we hire you?",
+  "Can I download your resume?",
+  "How can I contact you?",
+];
+
 const MIN_THINKING_DURATION_MS = 350;
+const SAFE_CLIENT_FALLBACK = createTextMessage(
+  "I can still help with questions about my experience, technical skills, projects, education, resume, and contact details. Try asking me about one of those areas.",
+);
 
 function wait(ms: number) {
   return new Promise((resolve) => {
@@ -35,15 +59,24 @@ function wait(ms: number) {
   });
 }
 
-function getSafeAnswer(payload: PortfolioAiResponse, fallback: string) {
-  return typeof payload.answer === "string" && payload.answer.trim()
-    ? payload.answer.trim()
-    : fallback;
+function getSafeAssistantMessage(payload: PortfolioAiResponse): AssistantMessage {
+  const structuredMessage = validateAssistantMessage(payload.message);
+
+  if (structuredMessage) {
+    return structuredMessage;
+  }
+
+  if (typeof payload.answer === "string" && payload.answer.trim()) {
+    return createTextMessage(payload.answer.trim());
+  }
+
+  return SAFE_CLIENT_FALLBACK;
 }
 
 export function PortfolioAiAssistant() {
   const panelId = useId();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const messageCounterRef = useRef(0);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -80,6 +113,7 @@ export function PortfolioAiAssistant() {
   const createMessage = (
     role: PortfolioAiMessageRole,
     content: string,
+    message?: AssistantMessage,
   ): PortfolioUiMessage => {
     messageCounterRef.current += 1;
 
@@ -87,14 +121,27 @@ export function PortfolioAiAssistant() {
       id: `${role}-${messageCounterRef.current}`,
       role,
       content,
+      message,
     };
   };
 
-  const handleSubmit = async () => {
-    const question = input.trim();
+  const resetConversation = () => {
+    setMessages([INITIAL_MESSAGE]);
+    setInput("");
+    setInputError("");
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const submitQuestion = async (questionOverride?: string) => {
+    const question = (questionOverride ?? input).trim();
 
     if (!question) {
       setInputError("Type a question first.");
+      return;
+    }
+
+    if (question.length > 1200) {
+      setInputError("Please keep your question shorter.");
       return;
     }
 
@@ -110,7 +157,7 @@ export function PortfolioAiAssistant() {
     setMessages((current) => [...current, userMessage]);
 
     try {
-      const startedAt = Date.now();
+      const minimumThinkingDelay = wait(MIN_THINKING_DURATION_MS);
       const response = await fetch("/api/portfolio-ai", {
         method: "POST",
         headers: {
@@ -122,28 +169,27 @@ export function PortfolioAiAssistant() {
         }),
       });
       const payload = (await response.json()) as PortfolioAiResponse;
-      const answer = getSafeAnswer(
-        payload,
-        "I could not answer that right now. Please try again in a moment.",
-      );
-      const elapsed = Date.now() - startedAt;
+      const assistantMessage = getSafeAssistantMessage(payload);
 
-      if (elapsed < MIN_THINKING_DURATION_MS) {
-        await wait(MIN_THINKING_DURATION_MS - elapsed);
-      }
+      await minimumThinkingDelay;
 
-      setMessages((current) => [...current, createMessage("assistant", answer)]);
+      setMessages((current) => [
+        ...current,
+        createMessage("assistant", assistantMessage.message, assistantMessage),
+      ]);
     } catch {
       await wait(MIN_THINKING_DURATION_MS);
       setMessages((current) => [
         ...current,
         createMessage(
           "assistant",
-          "I could not answer that right now. Please try again in a moment.",
+          SAFE_CLIENT_FALLBACK.message,
+          SAFE_CLIENT_FALLBACK,
         ),
       ]);
     } finally {
       setIsLoading(false);
+      window.requestAnimationFrame(() => inputRef.current?.focus());
     }
   };
 
@@ -154,7 +200,7 @@ export function PortfolioAiAssistant() {
     >
       {isOpen ? (
         <div
-          className="w-[calc(100vw-2rem)] max-w-[24rem] overflow-hidden rounded-md border border-[#D4D4D8] bg-[#FAFAFA] shadow-2xl"
+          className="w-[calc(100vw-2rem)] max-w-[25rem] overflow-hidden rounded-md border border-[#D4D4D8] bg-[#FAFAFA] shadow-2xl"
           id={panelId}
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 py-3">
@@ -167,31 +213,68 @@ export function PortfolioAiAssistant() {
                   Portfolio AI
                 </p>
                 <p className="truncate text-xs text-[#52525B]">
-                  Nikki Neil P. Carino
+                  Nikki Neil P. Cariño
                 </p>
               </div>
             </div>
-            <Button
-              aria-label="Close portfolio AI assistant"
-              className="min-h-9 min-w-9 px-2"
-              onClick={() => setIsOpen(false)}
-              size="sm"
-              variant="ghost"
-            >
-              <X aria-hidden="true" className="h-4 w-4" />
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                aria-label="Reset portfolio AI conversation"
+                className="min-h-9 px-2 text-xs"
+                onClick={resetConversation}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <RotateCcw aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden sm:inline">Reset</span>
+              </Button>
+              <Button
+                aria-label="Close portfolio AI assistant"
+                className="min-h-9 min-w-9 px-2"
+                onClick={() => setIsOpen(false)}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <X aria-hidden="true" className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="max-h-[min(28rem,62vh)] overflow-y-auto px-3 py-4">
-            <div className="flex flex-col gap-3">
+          <div className="max-h-[min(30rem,62vh)] overflow-y-auto px-3 py-4">
+            <div aria-live="polite" className="flex flex-col gap-3">
               {messages.map((message) => (
                 <PortfolioAiMessage
                   content={message.content}
                   key={message.id}
+                  message={message.message}
                   role={message.role}
                 />
               ))}
+              {messages.length === 1 && !isLoading ? (
+                <div
+                  aria-label="Suggested portfolio questions"
+                  className="ml-10 flex flex-wrap gap-2"
+                >
+                  {SUGGESTED_QUESTIONS.map((question) => (
+                    <button
+                      className="min-h-9 rounded-md border border-[#D4D4D8] bg-white px-3 py-1.5 text-left text-xs font-medium text-[#3F3F46] underline-offset-4 transition-colors hover:border-[#0F766E] hover:text-[#0F766E] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+                      disabled={isLoading}
+                      key={question}
+                      onClick={() => submitQuestion(question)}
+                      type="button"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {isLoading ? (
-                <div aria-live="polite" className="flex justify-start gap-2">
+                <div
+                  aria-live="polite"
+                  className="flex justify-start gap-2"
+                  role="status"
+                >
                   <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#CCFBF1] text-[#0F766E]">
                     <Sparkles
                       aria-hidden="true"
@@ -215,7 +298,8 @@ export function PortfolioAiAssistant() {
                 setInputError("");
               }
             }}
-            onSubmit={handleSubmit}
+            onSubmit={() => submitQuestion()}
+            textareaRef={inputRef}
             value={input}
           />
         </div>
@@ -226,6 +310,7 @@ export function PortfolioAiAssistant() {
         aria-label={isOpen ? "Hide portfolio AI assistant" : "Open portfolio AI assistant"}
         className="min-h-12 shadow-lg"
         onClick={() => setIsOpen((current) => !current)}
+        type="button"
       >
         {isOpen ? (
           <X aria-hidden="true" className="h-4 w-4" />

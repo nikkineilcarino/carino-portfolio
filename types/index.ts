@@ -68,14 +68,12 @@ export type CertificationItem = {
 };
 
 export type ProfileAsset = {
-  sourcePath: string;
   targetPath: string;
   publicPath: string;
   altText: string;
 };
 
 export type ResumeAsset = {
-  sourcePath: string;
   targetPath: string;
   publicPath: string;
 };

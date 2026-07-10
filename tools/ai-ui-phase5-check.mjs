@@ -165,7 +165,7 @@ async function testViewport(client, viewport) {
         panelRight: panelBox ? Math.round(panelBox.right) : null,
         panelBottom: panelBox ? Math.round(panelBox.bottom) : null,
         horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
-        greetingVisible: document.body.innerText.includes("Hi, I can answer questions about Nikki"),
+        greetingVisible: document.body.innerText.includes("Hi! I'm Nikki's portfolio AI"),
       };
     })()`,
   );
@@ -204,7 +204,60 @@ async function testViewport(client, viewport) {
     client,
     `(() => {
       const text = document.body.innerText;
-      return text.includes("Nikki's approved portfolio lists these skill areas") && text.includes("Manual Testing");
+      return text.includes("My main technical skills") && text.includes("software testing");
+    })()`,
+  );
+
+  await evaluate(
+    client,
+    `(() => {
+      const textarea = document.querySelector('#portfolio-ai-question');
+      textarea.focus();
+      const value = "Can I download your resume?";
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+      setter.call(textarea, value);
+      textarea.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
+      document.querySelector('button[aria-label="Send portfolio question"]').click();
+    })()`,
+  );
+  await wait(900);
+  const resumeState = await evaluate(
+    client,
+    `(() => {
+      const text = document.body.innerText;
+      const links = [...document.querySelectorAll('a')];
+      return {
+        hasMessage: text.includes("Here is my resume. You can view or download it below."),
+        hasView: links.some((link) => link.textContent.includes("View Resume") && link.getAttribute("href") === "/resume/Nikki_Neil_Carino_CV.pdf"),
+        hasDownload: links.some((link) => link.textContent.includes("Download Resume") && link.getAttribute("download") === "Nikki_Neil_Carino_CV.pdf"),
+        exposesPath: text.includes("/resume/Nikki_Neil_Carino_CV.pdf"),
+      };
+    })()`,
+  );
+
+  await evaluate(
+    client,
+    `(() => {
+      const textarea = document.querySelector('#portfolio-ai-question');
+      textarea.focus();
+      const value = "contact details";
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+      setter.call(textarea, value);
+      textarea.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
+      document.querySelector('button[aria-label="Send portfolio question"]').click();
+    })()`,
+  );
+  await wait(900);
+  const contactState = await evaluate(
+    client,
+    `(() => {
+      const links = [...document.querySelectorAll('a')].map((link) => link.getAttribute("href"));
+      return {
+        hasEmail: links.includes("mailto:nikkineil.carino@gmail.com"),
+        hasPhone: links.includes("tel:+639493433164"),
+        hasGithub: links.includes("https://github.com/nikkineilcarino"),
+        hasPortfolio: links.includes("https://carino-portfolio.vercel.app"),
+      };
     })()`,
   );
 
@@ -254,7 +307,7 @@ async function testViewport(client, viewport) {
     client,
     `(() => {
       window.fetch = window.__portfolioAiOriginalFetch;
-      return document.body.innerText.includes("I could not answer that right now. Please try again in a moment.");
+      return document.body.innerText.includes("I can still help with questions about my experience");
     })()`,
   );
 
@@ -319,6 +372,8 @@ async function testViewport(client, viewport) {
     emptyInputState,
     loadingState,
     answeredState,
+    resumeState,
+    contactState,
     longInputState,
     errorState,
     focusState,
@@ -344,6 +399,14 @@ function assertResult(result) {
   if (!result.emptyInputState) failures.push(`${width}: empty-input error missing`);
   if (!result.loadingState) failures.push(`${width}: Thinking state missing`);
   if (!result.answeredState) failures.push(`${width}: answer state missing expected content`);
+  if (!result.resumeState.hasMessage) failures.push(`${width}: resume message missing`);
+  if (!result.resumeState.hasView) failures.push(`${width}: View Resume link missing`);
+  if (!result.resumeState.hasDownload) failures.push(`${width}: Download Resume link missing`);
+  if (result.resumeState.exposesPath) failures.push(`${width}: resume path is visible in chat text`);
+  if (!result.contactState.hasEmail) failures.push(`${width}: email link missing`);
+  if (!result.contactState.hasPhone) failures.push(`${width}: phone link missing`);
+  if (!result.contactState.hasGithub) failures.push(`${width}: GitHub link missing`);
+  if (!result.contactState.hasPortfolio) failures.push(`${width}: portfolio link missing`);
   if (result.longInputState.horizontalOverflow) failures.push(`${width}: long input caused horizontal overflow`);
   if (!result.errorState) failures.push(`${width}: forced error state missing`);
   if (

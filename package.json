@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "qa:ai:api": "node tools/ai-acceptance-check.mjs",
+    "qa:ai:ui": "node tools/ai-ui-phase5-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.23.0",

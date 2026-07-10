@@ -9,13 +9,11 @@ export const siteIdentity = {
 };
 
 export const resumeAsset: ResumeAsset = {
-  sourcePath: "C:\\Users\\Nikki\\Downloads\\UpdatedResume_CariñoNikkiNeil.pdf",
   targetPath: "public/resume/Nikki_Neil_Carino_CV.pdf",
   publicPath: "/resume/Nikki_Neil_Carino_CV.pdf",
 };
 
 export const profileAsset: ProfileAsset = {
-  sourcePath: "C:\\Users\\Nikki\\Downloads\\Formal picture.jpg",
   targetPath: "public/images/profile/nikki-neil-carino-profile.jpg",
   publicPath: "/images/profile/nikki-neil-carino-profile.jpg",
   altText: "Portrait photo of Nikki Neil Cariño",

@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type KeyboardEvent } from "react";
+import { type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,6 +8,7 @@ type PortfolioAiInputProps = {
   value: string;
   error?: string;
   isLoading: boolean;
+  textareaRef?: RefObject<HTMLTextAreaElement | null>;
   onChange: (value: string) => void;
   onSubmit: () => void;
 };
@@ -16,6 +17,7 @@ export function PortfolioAiInput({
   value,
   error,
   isLoading,
+  textareaRef,
   onChange,
   onSubmit,
 }: PortfolioAiInputProps) {
@@ -46,6 +48,7 @@ export function PortfolioAiInput({
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask about CV, skills, projects, or contact details"
+          ref={textareaRef}
           rows={2}
           value={value}
         />
