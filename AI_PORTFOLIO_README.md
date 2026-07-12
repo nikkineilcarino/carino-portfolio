@@ -10,7 +10,9 @@ response contracts, limits, privacy behavior, and verification workflow.
 Implementation: Complete through Phase 6
 Default mode: Portfolio-only local responses
 Optional mode: OpenAI Responses API for generic questions
-Release state: Local changes only; Phase 8 release has not started
+Release state: Deployed to production on 2026-07-13
+Production URL: https://carino-portfolio.vercel.app
+Production AI mode: Portfolio-only; hosted provider variables are not configured
 ```
 
 `Nikki AI` is a portfolio feature, not an embedded ChatGPT account. Approved

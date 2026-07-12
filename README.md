@@ -96,8 +96,9 @@ Current Vercel-ready settings:
 - Environment variables: none required for portfolio-only mode
 
 Optional hosted AI variables and safe Vercel setup are documented in
-`DEPLOYMENT.md`. The current AI feature changes remain local until the separate
-release phase is explicitly authorized.
+`DEPLOYMENT.md`. The portfolio-only AI release is live at
+https://carino-portfolio.vercel.app; hosted generic answers remain disabled until
+the documented server-side environment values are configured.
 
 ## SDLC Rule
 

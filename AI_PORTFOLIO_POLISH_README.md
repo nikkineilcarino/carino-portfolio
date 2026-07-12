@@ -137,7 +137,7 @@ Rules:
 | 5 | Safety, privacy, rate limits, and cost controls | Complete |
 | 6 | Automated QA, browser review, and regression fixes | Complete |
 | 7 | Documentation and deployment readiness | Completed |
-| 8 | Commit, push, and production deployment | Requires explicit release instruction |
+| 8 | Commit, push, and production deployment | Completed |
 
 ## Phase 1: Provider Foundation
 
@@ -576,6 +576,30 @@ service unless the relevant phase and user instruction authorize it.
 - No commit, push, Vercel configuration, or deployment was performed.
 - Next phase: Phase 8, release. It requires an explicit commit, push, and deploy
   instruction.
+
+### Phase 8
+
+- Re-ran lint, TypeScript, production build, guardrail QA, mocked provider QA,
+  production API acceptance, and all four responsive browser viewports before
+  release. The final local release suite passed with zero failures.
+- Committed the tested implementation as `1e6b216` with author and committer
+  `nikkineilcarino <261335732+nikkineilcarino@users.noreply.github.com>` and
+  pushed it to `origin/main`.
+- Confirmed the linked Vercel project and authenticated account, then deployed
+  the tested checkout to production on 2026-07-13.
+- Confirmed the canonical production alias at
+  `https://carino-portfolio.vercel.app` and verified the homepage, approved
+  resume PDF, approved profile image, portfolio API scenarios, and mobile,
+  tablet, desktop, and wide-desktop assistant behavior.
+- The first combined live API and browser run reached the documented per-instance
+  request limit before the last viewport. After the 60-second window reset, the
+  isolated four-viewport suite passed with zero failures, confirming the limit
+  rather than a layout regression.
+- No hosted AI environment variables were available locally or in Vercel.
+  Production therefore remains in the documented portfolio-only mode; optional
+  generic provider behavior remains covered by the mocked provider suite.
+- Phase 8 is complete. Future hosted-AI activation requires adding the three
+  documented server-side Vercel environment values and redeploying.
 
 ## Official References
 

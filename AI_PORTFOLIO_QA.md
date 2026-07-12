@@ -11,7 +11,9 @@ Status: Passed
 Audited: 2026-07-12
 Requirement sources: AI_PORTFOLIO_GUIDE.md and AI_PORTFOLIO_POLISH_README.md
 Blocking QA issues: None
-Release state: Local changes only; production release is pending Phase 8
+Release state: Deployed and smoke-tested on 2026-07-13
+Production URL: https://carino-portfolio.vercel.app
+Production AI mode: Portfolio-only
 ```
 
 ## Required Commands
@@ -107,8 +109,8 @@ localhost-only mocked Responses API.
   across Vercel regions, cold starts, or deployments.
 - Automated provider QA uses a local mock. A real OpenAI request is intentionally
   excluded so tests require no secret and incur no cost.
-- Production has not been updated or smoke-tested with these local changes;
-  release verification belongs to Phase 8.
+- Production portfolio-only mode is smoke-tested. Hosted generic mode remains
+  disabled until all three server-side Vercel environment values are supplied.
 - `npm audit` reports two moderate dependency advisories. The suggested forced
   fix would make a breaking dependency change, so it is not applied implicitly.
 - Live web search is disabled, so the assistant cannot verify current external

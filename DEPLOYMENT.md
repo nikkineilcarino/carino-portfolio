@@ -12,12 +12,13 @@ Framework: Next.js
 Package lock: package-lock.json
 Production build: npm run build
 Production start: npm run start
-Current AI changes: Local only; not yet committed, pushed, or deployed
+Current AI changes: Committed, pushed, deployed, and smoke-tested on 2026-07-13
+Production URL: https://carino-portfolio.vercel.app
+Production AI mode: Portfolio-only
 ```
 
-Phase 7 only establishes deployment readiness. Actual commit, push, Vercel
-configuration, deployment, and live smoke testing happen in Phase 8 after an
-explicit release instruction.
+Phase 8 completed the production release. Hosted generic answers remain disabled
+because no provider environment variables are configured in Vercel.
 
 ## Local Setup
 
