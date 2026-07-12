@@ -8,13 +8,18 @@
     "start": "next start",
     "lint": "eslint .",
     "qa:ai:api": "node tools/ai-acceptance-check.mjs",
+    "qa:ai:guardrails": "node tools/ai-guardrail-check.mjs",
+    "qa:ai:provider": "node tools/ai-provider-check.mjs",
     "qa:ai:ui": "node tools/ai-ui-phase5-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.23.0",
     "next": "^16.2.10",
+    "openai": "^6.46.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.2",

@@ -1,109 +1,215 @@
 # Deployment Notes
 
-This portfolio is prepared for Vercel deployment from the repository root.
+This runbook prepares the portfolio for Vercel from the repository root.
 
-## Current Deployment Status
+## Release State
 
-- Framework: Next.js
-- Repository root: `C:\Cariño_Portfolio`
-- Git branch: `main`
-- Remote: `https://github.com/nikkineilcarino/carino-portfolio.git`
-- Package manager lockfile: `package-lock.json`
-- Environment variables required for current safe fallback behavior: none
-- Optional environment variables for hosted AI answers: see
-  [AI Assistant Deployment](#ai-assistant-deployment)
-- Production build command: `npm run build`
-- Local production start command: `npm run start`
+```text
+Repository root: C:\Cariño_Portfolio
+Branch: main
+Remote: https://github.com/nikkineilcarino/carino-portfolio.git
+Framework: Next.js
+Package lock: package-lock.json
+Production build: npm run build
+Production start: npm run start
+Current AI changes: Local only; not yet committed, pushed, or deployed
+```
 
-Vercel supports Next.js projects directly and automatically configures sensible
-defaults for framework builds and routing. Vercel also checks the `build` script
-in `package.json` for Next.js projects, which is already set to `next build`.
+Phase 7 only establishes deployment readiness. Actual commit, push, Vercel
+configuration, deployment, and live smoke testing happen in Phase 8 after an
+explicit release instruction.
 
-Sources:
+## Local Setup
+
+Install dependencies and run portfolio-only mode:
+
+```powershell
+npm install
+npm run dev
+```
+
+No environment variables are required. Known portfolio questions, resume,
+contact, projects, and safety responses remain available without provider cost.
+
+To test optional hosted generic answers locally:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Then set all values in the ignored `.env.local` file:
+
+```text
+PORTFOLIO_AI_ENABLE_GENERIC=true
+OPENAI_API_KEY=[local server-side secret]
+OPENAI_MODEL=[deployment-selected supported model ID]
+```
+
+Restart the server after changes. Never commit `.env.local`, use a
+`NEXT_PUBLIC_` key, or paste a real secret into source, docs, tests, chat, or
+deployment logs.
+
+## Vercel Project Settings
+
+Use these settings when the GitHub repository is connected to Vercel:
+
+- Framework Preset: `Next.js`
+- Root Directory: `./`
+- Install Command: default npm install behavior
+- Build Command: `npm run build`
+- Output Directory: default Next.js output
+- Production Branch: `main`
+
+No `vercel.json` file is required by the current application.
+
+References:
 
 - https://vercel.com/docs/frameworks/full-stack/nextjs
 - https://vercel.com/docs/builds/configure-a-build
 - https://vercel.com/docs/deployments
 
-## Vercel Project Settings
+## AI Environment Modes
 
-Use these settings when importing the GitHub repository into Vercel:
+### Portfolio-Only Production
 
-- Framework Preset: `Next.js`
-- Root Directory: `./`
-- Install Command: default Vercel npm install behavior
-- Build Command: `npm run build`
-- Output Directory: default Next.js/Vercel output
-- Production Branch: `main`
-
-No `vercel.json` file is required for the current setup.
-
-## AI Assistant Deployment
-
-The portfolio AI assistant is built to work without hosted AI provider
-credentials. If no provider environment variables are configured, the assistant
-uses the local safe-answer fallback for approved portfolio questions and returns
-a clear unavailable message for broader general questions.
-
-No environment variables are required for that fallback mode.
-
-To enable hosted AI answers later, add these variables in the Vercel project
-settings, not in the repository:
+Deploy with no AI variables, or explicitly set:
 
 ```text
-AI_PROVIDER=openai-compatible
-AI_API_KEY=[set in Vercel only]
-AI_MODEL=[provider model name]
-AI_BASE_URL=https://api.openai.com/v1/chat/completions
+PORTFOLIO_AI_ENABLE_GENERIC=false
 ```
 
-Notes:
+The assistant answers approved portfolio intents locally. General questions
+receive a clear limitation response without revealing configuration details.
 
-- `AI_API_KEY` must never be committed to Git.
-- `AI_BASE_URL` is optional if the default OpenAI-compatible endpoint is used.
-- Keep all AI provider calls server-side through `app/api/portfolio-ai/route.ts`.
-- The assistant can be deployed before hosted AI is configured because the local
-  fallback already handles approved portfolio questions.
+### Hosted Generic Answers
 
-## Pre-Deployment Checklist
+Add these values directly in Vercel project environment settings for Production:
 
-Run these checks before deploying:
+```text
+PORTFOLIO_AI_ENABLE_GENERIC=true
+OPENAI_API_KEY=[set in Vercel only]
+OPENAI_MODEL=[deployment-selected supported model ID]
+```
 
-```bash
-npm install
+`OPENAI_MODEL` is intentionally configuration, not a hardcoded application
+default. Select and review a supported model when enabling the environment.
+
+- Keep provider calls server-side through `app/api/portfolio-ai/route.ts`.
+- Use a dedicated OpenAI project and key for this portfolio.
+- Redeploy after changing environment values.
+- Confirm generic mode only after usage controls are configured.
+
+## Production Guardrails
+
+| Guardrail | Limit |
+|---|---:|
+| JSON request body | 24,576 bytes |
+| Question | 1,200 characters |
+| Conversation history | 8 messages |
+| Each history message | 1,200 characters |
+| Provider timeout | 8 seconds |
+| Provider automatic retries | 0 |
+| Provider output request | 700 tokens |
+| Rendered provider output | 8,000 characters |
+| Requests per client key | 24 per 60 seconds per runtime instance |
+
+Responses include `X-Request-ID`, `RateLimit-Limit`,
+`RateLimit-Remaining`, `RateLimit-Reset`, and `RateLimit-Policy`. HTTP 429
+responses also include `Retry-After`. `X-RateLimit-Scope: instance` documents
+that the in-memory limiter is not a global quota across regions, cold starts,
+or deployments.
+
+Provider calls use `store: false`, no tools, and no automatic retries. The app
+does not persist conversations. Provider logs include only request ID and a
+minimal error class or status; they exclude visitor prompts, history, keys,
+provider payloads, and raw error messages.
+
+Live web search is disabled. Requests for current browsing receive a capability
+notice rather than an unsupported claim that sources were checked.
+
+## Cost Controls and Emergency Disable
+
+Before setting `PORTFOLIO_AI_ENABLE_GENERIC=true`:
+
+1. Use a dedicated OpenAI project and API key.
+2. Review project rate and usage limits in the
+   [OpenAI limits settings](https://platform.openai.com/settings/organization/limits).
+3. Review activity in the
+   [OpenAI usage dashboard](https://platform.openai.com/settings/organization/usage)
+   after deployment and periodically afterward.
+4. Keep the application limits above enabled. Provider limits do not replace
+   application abuse controls; see the
+   [OpenAI rate-limit guide](https://developers.openai.com/api/docs/guides/rate-limits).
+
+For unexpected traffic or spend:
+
+1. Set `PORTFOLIO_AI_ENABLE_GENERIC=false` in Vercel.
+2. Redeploy so local portfolio answers remain available without provider calls.
+3. Revoke or rotate the project key if exposure is suspected.
+4. Investigate with request IDs and provider usage data without logging visitor
+   content.
+
+## Pre-Deployment Verification
+
+Use the lockfile for a release-equivalent dependency install when appropriate:
+
+```powershell
+npm ci
 npm run lint
+npx tsc --noEmit
 npm run build
+npm run qa:ai:guardrails
+npm run qa:ai:provider
 ```
 
-Optional local production smoke test:
+The guardrail and provider suites self-start isolated local servers. For API and
+browser acceptance, start the built site:
 
-```bash
-npm run start
+```powershell
+npm run start -- -p 3014
 ```
 
-Then verify:
+Then in another terminal:
+
+```powershell
+$env:QA_BASE_URL="http://localhost:3014"
+npm run qa:ai:api
+npm run qa:ai:ui
+```
+
+Also confirm before release:
+
+- `git branch --show-current` returns `main`.
+- `git remote -v` points to the approved `nikkineilcarino` repository.
+- Local Git author identity matches the required GitHub contributor.
+- Secret scans find no tracked credential or environment file.
+- `git diff --check` reports no whitespace errors.
+- The reviewed diff contains no unrelated change or binary replacement.
+
+## Phase 8 Live Smoke Test
+
+After deploying the exact tested commit, verify the canonical site:
 
 - `/` loads successfully.
-- `/resume/Nikki_Neil_Carino_CV.pdf` returns the resume PDF.
-- `/images/profile/nikki-neil-carino-profile.jpg` returns the approved profile image.
-- The browser icon loads from the approved profile image asset.
-- The `Ask AI` assistant opens, shows `Thinking...`, answers approved portfolio
-  questions, and handles missing hosted AI configuration gracefully.
-- No private project screenshots, fake certificate images, fake live demos, or
-  fake GitHub links are added.
+- `/resume/Nikki_Neil_Carino_CV.pdf` returns the approved PDF.
+- `/images/profile/nikki-neil-carino-profile.jpg` returns the approved image.
+- `Ask Nikki AI` opens and shows its processing state.
+- Identity, internship, project, resume, and contact answers work.
+- Contact details are clickable and the resume actions open/download the PDF.
+- If generic mode is enabled, one generic answer succeeds without leaking
+  configuration or provider details.
+- If generic mode is disabled, a generic question fails closed while local
+  portfolio answers continue working.
+- Mobile and desktop layouts have no clipping or horizontal overflow.
 
 ## Known Deployment Notes
 
-- The browser icon currently uses the approved profile photo asset to avoid a
-  missing favicon request. Replace it only if a dedicated approved logo or icon
-  is provided.
-- A social preview image is not configured because no approved social preview
-  asset has been provided.
-- Project screenshots and certificate images are intentionally not rendered
-  because no approved assets were provided.
-- Missing live demo, GitHub, LinkedIn, location, screenshot, and certificate
-  assets remain documented as unavailable or TODO.
-- `npm audit --audit-level=moderate` currently reports two moderate
-  Next/PostCSS advisories where the suggested `npm audit fix --force` would
-  perform a breaking forced downgrade. Do not apply that forced change unless
-  explicitly approved after reviewing the tradeoff.
+- The browser icon uses the approved profile image until a dedicated approved
+  logo is provided.
+- No approved social preview image, project screenshots, or certificate images
+  are available, so the portfolio does not invent them.
+- Missing live demos, repositories, LinkedIn, location, screenshots, and
+  certificate assets remain explicitly unavailable or TODO where applicable.
+- `npm audit` currently reports two moderate dependency advisories. The proposed
+  forced fix would perform a breaking dependency change and must not be applied
+  without a separate review and approval.

@@ -1,4 +1,5 @@
 import { portfolioProfile, resumeFile } from "@/lib/ai/portfolio-profile";
+import { PORTFOLIO_AI_LIMITS } from "@/lib/ai/portfolio-limits";
 
 export type PortfolioAiLink = {
   label: string;
@@ -138,6 +139,8 @@ function isSafeLink(link: unknown): link is PortfolioAiLink {
   if (
     typeof link.label !== "string" ||
     typeof link.href !== "string" ||
+    !link.label.trim() ||
+    link.label.length > PORTFOLIO_AI_LIMITS.linkLabelCharacters ||
     !["email", "phone", "external"].includes(String(link.kind))
   ) {
     return false;
@@ -145,7 +148,16 @@ function isSafeLink(link: unknown): link is PortfolioAiLink {
 
   try {
     const url = new URL(link.href);
-    return SAFE_LINK_PROTOCOLS.has(url.protocol);
+
+    if (!SAFE_LINK_PROTOCOLS.has(url.protocol)) {
+      return false;
+    }
+
+    return (
+      (link.kind === "email" && url.protocol === "mailto:") ||
+      (link.kind === "phone" && url.protocol === "tel:") ||
+      (link.kind === "external" && url.protocol === "https:")
+    );
   } catch {
     return false;
   }
@@ -168,13 +180,21 @@ function validateProject(project: unknown): PortfolioAiProject | null {
   if (
     typeof project.name !== "string" ||
     typeof project.summary !== "string" ||
-    !Array.isArray(project.technologies)
+    !project.name.trim() ||
+    project.name.length > PORTFOLIO_AI_LIMITS.projectNameCharacters ||
+    !project.summary.trim() ||
+    project.summary.length > PORTFOLIO_AI_LIMITS.projectSummaryCharacters ||
+    !Array.isArray(project.technologies) ||
+    project.technologies.length > PORTFOLIO_AI_LIMITS.projectTechnologies
   ) {
     return null;
   }
 
   const technologies = project.technologies.filter(
-    (technology): technology is string => typeof technology === "string",
+    (technology): technology is string =>
+      typeof technology === "string" &&
+      Boolean(technology.trim()) &&
+      technology.length <= PORTFOLIO_AI_LIMITS.technologyCharacters,
   );
 
   if (technologies.length !== project.technologies.length) {
@@ -185,7 +205,7 @@ function validateProject(project: unknown): PortfolioAiProject | null {
     try {
       const url = new URL(project.url);
 
-      if (!SAFE_LINK_PROTOCOLS.has(url.protocol)) {
+      if (url.protocol !== "https:") {
         return null;
       }
     } catch {
@@ -194,9 +214,9 @@ function validateProject(project: unknown): PortfolioAiProject | null {
   }
 
   return {
-    name: project.name,
-    summary: project.summary,
-    technologies,
+    name: project.name.trim(),
+    summary: project.summary.trim(),
+    technologies: technologies.map((technology) => technology.trim()),
     url: typeof project.url === "string" ? project.url : undefined,
   };
 }
@@ -206,7 +226,11 @@ export function validateAssistantMessage(value: unknown): AssistantMessage | nul
     return null;
   }
 
-  if (typeof value.message !== "string" || value.message.trim().length === 0) {
+  if (
+    typeof value.message !== "string" ||
+    value.message.trim().length === 0 ||
+    value.message.length > PORTFOLIO_AI_LIMITS.assistantMessageCharacters
+  ) {
     return null;
   }
 
@@ -236,7 +260,10 @@ export function validateAssistantMessage(value: unknown): AssistantMessage | nul
     return {
       type: "links",
       message: value.message.trim(),
-      links,
+      links: links.map((link) => ({
+        ...link,
+        label: link.label.trim(),
+      })),
     };
   }
 
@@ -255,25 +282,4 @@ export function validateAssistantMessage(value: unknown): AssistantMessage | nul
   }
 
   return null;
-}
-
-export function parseAssistantMessageFromProvider(content: string): AssistantMessage | null {
-  const trimmed = content.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    const validated = validateAssistantMessage(parsed);
-
-    if (validated) {
-      return validated;
-    }
-  } catch {
-    // Plain text model output is handled below.
-  }
-
-  return createTextMessage(trimmed);
 }

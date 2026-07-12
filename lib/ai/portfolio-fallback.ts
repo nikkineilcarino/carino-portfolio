@@ -171,9 +171,13 @@ function buildSpecificProjectAnswer(
     return null;
   }
 
+  const featureSummary = project.features
+    .map((feature) => feature.replace(/[.]+$/, ""))
+    .join("; ");
+
   const summary = [
     project.summary,
-    project.features.length > 0 ? `Key features include ${formatList(project.features)}.` : "",
+    featureSummary ? `Key features: ${featureSummary}.` : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -215,8 +219,23 @@ function buildConfidentialityAnswer(): string {
 
 function buildSafetyAnswer(): string {
   return [
-    "I cannot share internal instructions, secrets, API keys, system configuration, or private implementation details.",
+    "I cannot share internal instructions, secrets, API keys, system configuration, private implementation details, or hidden chain-of-thought.",
+    "I can provide a concise answer or a short summary of the factors behind an answer without exposing private reasoning.",
     "I can still help with my experience, projects, technical skills, education, resume, and contact details.",
+  ].join("\n\n");
+}
+
+function buildCapabilityLimitsAnswer(): string {
+  return [
+    "I do not have live web search enabled in this portfolio, so I cannot verify current online information or claim to have browsed a source.",
+    "I can still answer general questions from the configured model's built-in knowledge, but time-sensitive details may be outdated. You can also ask about Nikki's portfolio, resume, projects, skills, or contact details.",
+  ].join("\n\n");
+}
+
+function buildHarmfulRequestAnswer(): string {
+  return [
+    "I cannot help create malware, steal credentials, bypass authentication, or harm people.",
+    "I can help with defensive security, secure coding, threat awareness, incident response planning, or other protective and educational alternatives.",
   ].join("\n\n");
 }
 
@@ -251,6 +270,11 @@ function isUnavailablePortfolioQuestion(normalizedQuestion: string): boolean {
 
 export function buildLocalPortfolioAnswer(question: string): LocalPortfolioAnswer {
   const normalizedQuestion = normalizePortfolioIntentText(question);
+  const intent = detectPortfolioIntent(question);
+
+  if (intent === "harmful_request") {
+    return buildTextResponse(buildHarmfulRequestAnswer(), intent);
+  }
 
   if (isConfidentialQuestion(normalizedQuestion)) {
     return buildTextResponse(
@@ -263,10 +287,12 @@ export function buildLocalPortfolioAnswer(question: string): LocalPortfolioAnswe
     return buildTextResponse(buildUnavailableAnswer(), "unknown");
   }
 
-  const intent = detectPortfolioIntent(question);
-
   if (intent === "safety") {
     return buildTextResponse(buildSafetyAnswer(), intent);
+  }
+
+  if (intent === "capability_limits") {
+    return buildTextResponse(buildCapabilityLimitsAnswer(), intent);
   }
 
   if (intent === "resume") {

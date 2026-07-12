@@ -82,6 +82,23 @@ async function run() {
     ]);
   });
 
+  await capture("internship", async () => {
+    await assertTextAnswer("Describe your internship experience", [
+      "Microgenesis Business Systems",
+      "software quality assurance",
+      "Agile sprint planning",
+      "cross-functional collaboration",
+    ]);
+  });
+
+  await capture("education", async () => {
+    await assertTextAnswer("What is your education?", [
+      "Bachelor of Science in Information Technology",
+      "University of Santo Tomas",
+      "recent Information Technology graduate",
+    ]);
+  });
+
   await capture("resume", async () => {
     for (const question of ["resume", "CV", "Send me your resume", "Download CV"]) {
       const { status, payload } = await postQuestion(question);
@@ -189,6 +206,16 @@ async function run() {
   });
 
   await capture("validation", async () => {
+    const empty = await postQuestion("   ");
+    assert(
+      empty.status === 400,
+      `empty validation: expected HTTP 400, got ${empty.status}`,
+    );
+    assert(
+      includesText(empty.payload, "type a question"),
+      "empty validation message missing",
+    );
+
     const { status, payload } = await postQuestion("x".repeat(1201));
 
     assert(status === 400, `validation: expected HTTP 400, got ${status}`);

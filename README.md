@@ -34,8 +34,28 @@ The project foundation uses:
 - Tailwind CSS
 - ESLint
 - Lucide React
+- OpenAI JavaScript SDK
+- React Markdown with GitHub Flavored Markdown
 
 No extra animation or component libraries are currently required.
+
+## Nikki AI
+
+The floating `Nikki AI` assistant answers approved portfolio questions locally
+and returns validated resume, contact, and project messages. Optional generic
+answers use the server-side OpenAI Responses API only when explicitly enabled.
+
+- Portfolio-only mode requires no environment variables.
+- Hosted generic mode uses the ignored `.env.example` template locally and
+  Vercel project environment settings in production.
+- Provider model selection is environment configuration, not a hardcoded
+  application default.
+- Provider requests use bounded history and output, `store: false`, no tools,
+  an eight-second timeout, and no automatic retries.
+
+Architecture, configuration, limits, privacy behavior, and QA instructions are
+documented in `AI_PORTFOLIO_README.md`. Final acceptance results and residual
+risks are in `AI_PORTFOLIO_QA.md`.
 
 ## Local Development
 
@@ -55,8 +75,14 @@ Run quality checks:
 
 ```bash
 npm run lint
+npx tsc --noEmit
 npm run build
+npm run qa:ai:guardrails
+npm run qa:ai:provider
 ```
+
+The production API and browser suites require a running built server. See
+`AI_PORTFOLIO_README.md` for the two-terminal commands.
 
 ## Deployment
 
@@ -67,7 +93,11 @@ Current Vercel-ready settings:
 - Framework Preset: `Next.js`
 - Root Directory: `./`
 - Build Command: `npm run build`
-- Environment variables: none required
+- Environment variables: none required for portfolio-only mode
+
+Optional hosted AI variables and safe Vercel setup are documented in
+`DEPLOYMENT.md`. The current AI feature changes remain local until the separate
+release phase is explicitly authorized.
 
 ## SDLC Rule
 

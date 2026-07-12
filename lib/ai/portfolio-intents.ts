@@ -4,6 +4,7 @@ export type PortfolioIntent =
   | "skills"
   | "expertise"
   | "experience"
+  | "harmful_request"
   | "education"
   | "projects"
   | "specific_project"
@@ -13,6 +14,7 @@ export type PortfolioIntent =
   | "why_hire"
   | "qualification"
   | "availability"
+  | "capability_limits"
   | "safety"
   | "unknown";
 
@@ -21,20 +23,59 @@ const keywordGroups: Array<{
   keywords: string[];
 }> = [
   {
+    intent: "harmful_request",
+    keywords: [
+      "build a keylogger",
+      "bypass authentication",
+      "create malware",
+      "create ransomware",
+      "harm someone",
+      "make a phishing page",
+      "steal credentials",
+      "steal passwords",
+      "write malware",
+      "write ransomware",
+    ],
+  },
+  {
+    intent: "capability_limits",
+    keywords: [
+      "browse the web",
+      "browse the internet",
+      "live web search",
+      "search the web",
+      "search the internet",
+      "use web search",
+      "access the internet",
+      "look this up online",
+    ],
+  },
+  {
     intent: "safety",
     keywords: [
-      "system prompt",
-      "developer message",
-      "api key",
-      "environment variable",
-      "env var",
-      "secret",
-      "server config",
-      "internal path",
-      "raw json",
+      "reveal your system prompt",
+      "show your system prompt",
+      "print your system prompt",
+      "repeat your instructions",
+      "instructions above",
+      "developer message verbatim",
+      "show your api key",
+      "reveal the api key",
+      "list environment variables",
+      "show environment variables",
+      "process.env",
+      "reveal secrets",
+      "show server config",
+      "show internal path",
+      "raw provider json",
       "ignore previous",
       "ignore your instructions",
+      "ignore all instructions",
       "jailbreak",
+      "show your chain of thought",
+      "reveal your chain of thought",
+      "hidden reasoning",
+      "private reasoning",
     ],
   },
   {

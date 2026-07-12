@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import {
-  Bot,
   Download,
   ExternalLink,
   FileText,
+  FolderKanban,
   Globe2,
   Mail,
   Phone,
-  UserRound,
+  Sparkles,
 } from "lucide-react";
+import { PortfolioAiCopyButton } from "@/components/ai/portfolio-ai-copy-button";
+import { PortfolioAiMarkdown } from "@/components/ai/portfolio-ai-markdown";
 import type {
   AssistantMessage,
   PortfolioAiFile,
@@ -25,6 +27,7 @@ type PortfolioAiMessageProps = {
   role: PortfolioAiMessageRole;
   content: string;
   message?: AssistantMessage;
+  showCopy?: boolean;
 };
 
 type ResumeFileState = "checking" | "available" | "missing";
@@ -52,6 +55,18 @@ function getLinkIcon(link: PortfolioAiLink) {
   }
 
   return Globe2;
+}
+
+function getLinkKindLabel(link: PortfolioAiLink) {
+  if (link.kind === "email") {
+    return "Email";
+  }
+
+  if (link.kind === "phone") {
+    return "Phone";
+  }
+
+  return "Website";
 }
 
 function FileMessage({ file, message }: { file: PortfolioAiFile; message: string }) {
@@ -85,27 +100,42 @@ function FileMessage({ file, message }: { file: PortfolioAiFile; message: string
   }, [file.url, isApprovedFile]);
 
   return (
-    <div className="space-y-3">
-      <p className="whitespace-pre-wrap break-words">{message}</p>
-      <div className="flex flex-wrap gap-2">
-        <a
-          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#0F766E] bg-white px-3 py-2 text-sm font-semibold text-[#0F766E] underline-offset-4 transition-colors hover:bg-[#F0FDFA] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-          href={isApprovedFile ? file.url : "#"}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <FileText aria-hidden="true" className="h-4 w-4" />
-          <span>View Resume</span>
-        </a>
-        <a
-          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#0F766E] bg-[#0F766E] px-3 py-2 text-sm font-semibold text-white underline-offset-4 transition-colors hover:bg-[#115E59] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-          download={file.name}
-          href={isApprovedFile ? file.url : "#"}
-        >
-          <Download aria-hidden="true" className="h-4 w-4" />
-          <span>Download Resume</span>
-        </a>
+    <div className="space-y-3.5">
+      <PortfolioAiMarkdown>{message}</PortfolioAiMarkdown>
+      <div className="flex items-center gap-3 rounded-md bg-[#F4F4F5] p-3">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-[#0F766E] shadow-sm">
+          <FileText aria-hidden="true" className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-[#18181B]">Nikki Neil Cariño</p>
+          <p className="mt-0.5 text-xs text-[#71717A]">
+            PDF resume
+            {fileState === "checking" ? " · Checking availability" : ""}
+            {fileState === "available" ? " · Available" : ""}
+          </p>
+        </div>
       </div>
+      {isApprovedFile ? (
+        <div className="flex flex-wrap gap-2">
+          <a
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#0F766E] bg-white px-3 py-2 text-sm font-semibold text-[#0F766E] underline-offset-4 transition-colors hover:bg-[#F0FDFA] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+            href={file.url}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <FileText aria-hidden="true" className="h-4 w-4" />
+            <span>View Resume</span>
+          </a>
+          <a
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#0F766E] bg-[#0F766E] px-3 py-2 text-sm font-semibold text-white underline-offset-4 transition-colors hover:bg-[#115E59] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+            download={file.name}
+            href={file.url}
+          >
+            <Download aria-hidden="true" className="h-4 w-4" />
+            <span>Download Resume</span>
+          </a>
+        </div>
+      ) : null}
       {fileState === "missing" ? (
         <p className="text-xs leading-5 text-[#B91C1C]" role="alert">
           The resume file is currently unavailable. Please contact me by email
@@ -124,23 +154,32 @@ function LinksMessage({
   message: string;
 }) {
   return (
-    <div className="space-y-3">
-      <p className="whitespace-pre-wrap break-words">{message}</p>
-      <div className="flex flex-col gap-2">
+    <div className="space-y-3.5">
+      <PortfolioAiMarkdown>{message}</PortfolioAiMarkdown>
+      <div className="divide-y divide-[#E4E4E7] border-y border-[#E4E4E7]">
         {links.filter((link) => isSafeLinkHref(link.href)).map((link) => {
           const Icon = getLinkIcon(link);
           const isExternal = link.kind === "external";
 
           return (
             <a
-              className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#D4D4D8] bg-white px-3 py-2 text-sm font-medium text-[#0F172A] underline-offset-4 transition-colors hover:border-[#0F766E] hover:text-[#0F766E] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+              className="group flex min-h-14 min-w-0 items-center gap-2.5 px-1 py-2 text-[#0F172A] transition-colors hover:bg-[#F0FDFA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
               href={link.href}
               key={`${link.kind}-${link.href}`}
               rel={isExternal ? "noopener noreferrer" : undefined}
               target={isExternal ? "_blank" : undefined}
             >
-              <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span className="break-all">{link.label}</span>
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-[#0F766E] shadow-sm">
+                <Icon aria-hidden="true" className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.6875rem] font-semibold uppercase text-[#71717A]">
+                  {getLinkKindLabel(link)}
+                </span>
+                <span className="mt-0.5 block break-all text-xs font-medium underline-offset-4 group-hover:text-[#0F766E] group-hover:underline">
+                  {link.label}
+                </span>
+              </span>
               {isExternal ? (
                 <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
               ) : null}
@@ -160,20 +199,27 @@ function ProjectMessage({
   project: PortfolioAiProject;
 }) {
   return (
-    <div className="space-y-3">
-      <p className="whitespace-pre-wrap break-words">{message}</p>
-      <div className="space-y-2 border-t border-[#E4E4E7] pt-3">
-        <div>
-          <p className="text-sm font-semibold text-[#18181B]">{project.name}</p>
-          <p className="mt-1 text-sm leading-6 text-[#3F3F46]">
+    <div className="space-y-3.5">
+      <PortfolioAiMarkdown>{message}</PortfolioAiMarkdown>
+      <div className="space-y-3 border-t border-[#E4E4E7] pt-3.5">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-[#0F766E] shadow-sm">
+            <FolderKanban aria-hidden="true" className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="break-words text-sm font-semibold text-[#18181B]">
+              {project.name}
+            </p>
+            <p className="mt-1 break-words text-sm leading-6 text-[#3F3F46] [overflow-wrap:anywhere]">
             {project.summary}
-          </p>
+            </p>
+          </div>
         </div>
         {project.technologies.length > 0 ? (
           <div className="flex flex-wrap gap-1.5" aria-label="Project technologies">
             {project.technologies.map((technology) => (
               <span
-                className="rounded-md bg-[#E0F2FE] px-2 py-1 text-xs font-medium text-[#075985]"
+                className="max-w-full break-words rounded-md border border-[#BAE6FD] bg-[#F0F9FF] px-2 py-1 text-xs font-medium text-[#075985] [overflow-wrap:anywhere]"
                 key={technology}
               >
                 {technology}
@@ -205,7 +251,7 @@ function AssistantContent({
   message?: AssistantMessage;
 }) {
   if (!message) {
-    return <p className="whitespace-pre-wrap break-words">{content}</p>;
+    return <PortfolioAiMarkdown>{content}</PortfolioAiMarkdown>;
   }
 
   if (message.type === "file") {
@@ -220,48 +266,56 @@ function AssistantContent({
     return <ProjectMessage message={message.message} project={message.project} />;
   }
 
-  return <p className="whitespace-pre-wrap break-words">{message.message}</p>;
+  return <PortfolioAiMarkdown>{message.message}</PortfolioAiMarkdown>;
 }
 
 export function PortfolioAiMessage({
   role,
   content,
   message,
+  showCopy = false,
 }: PortfolioAiMessageProps) {
   const isAssistant = role === "assistant";
-  const Icon = isAssistant ? Bot : UserRound;
+  const isStructuredAssistantMessage =
+    isAssistant && message && message.type !== "text";
 
   return (
     <div
+      data-message-role={role}
       className={cn(
-        "flex gap-2",
+        "flex w-full gap-2.5",
         isAssistant ? "justify-start" : "justify-end",
       )}
     >
       {isAssistant ? (
         <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#CCFBF1] text-[#0F766E]">
-          <Icon aria-hidden="true" className="h-4 w-4" />
+          <Sparkles aria-hidden="true" className="h-4 w-4" />
         </span>
       ) : null}
       <div
+        data-message-type={isAssistant ? (message?.type ?? "text") : "user"}
         className={cn(
-          "max-w-[82%] rounded-md px-3 py-2 text-sm leading-6",
-          isAssistant
-            ? "border border-[#E4E4E7] bg-white text-[#27272A]"
-            : "bg-[#0F766E] text-white",
+          "min-w-0 text-sm leading-6",
+          isStructuredAssistantMessage
+            ? "flex-1 rounded-md border border-[#E4E4E7] bg-white px-3.5 py-3 text-[#27272A] shadow-sm"
+            : isAssistant
+              ? "flex-1 px-1 py-1 text-[#27272A]"
+              : "max-w-[min(82%,28rem)] rounded-md bg-[#0F766E] px-3.5 py-2.5 text-white shadow-sm",
         )}
       >
         {isAssistant ? (
-          <AssistantContent content={content} message={message} />
+          <>
+            <AssistantContent content={content} message={message} />
+            {showCopy && (!message || message.type === "text") && content.trim() ? (
+              <div className="mt-1 flex justify-end">
+                <PortfolioAiCopyButton kind="answer" text={content} />
+              </div>
+            ) : null}
+          </>
         ) : (
           <p className="whitespace-pre-wrap break-words">{content}</p>
         )}
       </div>
-      {!isAssistant ? (
-        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#E0E7FF] text-[#3730A3]">
-          <Icon aria-hidden="true" className="h-4 w-4" />
-        </span>
-      ) : null}
     </div>
   );
 }
