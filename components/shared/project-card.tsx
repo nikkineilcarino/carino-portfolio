@@ -7,21 +7,6 @@ type ProjectCardProps = {
   className?: string;
 };
 
-function ProjectLinkStatus({
-  label,
-  note,
-}: {
-  label: string;
-  note?: string;
-}) {
-  return (
-    <p className="text-sm leading-6 text-[#52525B]">
-      <span className="font-medium text-[#3F3F46]">{label}:</span>{" "}
-      {note ?? "Not available."}
-    </p>
-  );
-}
-
 export function ProjectCard({ project, className }: ProjectCardProps) {
   const hasImage =
     project.screenshot.status === "available" &&
@@ -92,10 +77,6 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
             {technology}
           </span>
         ))}
-      </div>
-      <div className="mt-5 space-y-2 border-t border-[#E4E4E7] pt-4">
-        <ProjectLinkStatus label={project.liveDemo.label} note={project.liveDemo.note} />
-        <ProjectLinkStatus label={project.github.label} note={project.github.note} />
       </div>
       {project.confidentialityNote || project.clientNote ? (
         <p className="mt-4 text-sm leading-6 text-[#52525B]">

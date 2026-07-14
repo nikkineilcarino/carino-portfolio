@@ -45,8 +45,6 @@ export type ProjectItem = {
     publicPath: string;
     altText: string;
   }>;
-  liveDemo: ActionLink;
-  github: ActionLink;
   confidentialityNote?: string;
   clientNote?: string;
 };

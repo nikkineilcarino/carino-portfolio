@@ -1,17 +1,5 @@
 import type { ProjectItem } from "@/types";
 
-const unavailableLiveDemo = {
-  label: "Live demo",
-  status: "todo" as const,
-  note: "Not available unless approved.",
-};
-
-const unavailableGithub = {
-  label: "GitHub",
-  status: "todo" as const,
-  note: "Not available unless approved.",
-};
-
 export const projects: ProjectItem[] = [
   {
     title: "Microgenesis Central Hub",
@@ -32,8 +20,6 @@ export const projects: ProjectItem[] = [
       status: "confidential",
       note: "No screenshots or proof are available due to company ownership and confidentiality unless explicitly provided and approved for portfolio use.",
     },
-    liveDemo: unavailableLiveDemo,
-    github: unavailableGithub,
     confidentialityNote:
       "Screenshots are not shown due to company ownership and confidentiality.",
   },
@@ -49,8 +35,6 @@ export const projects: ProjectItem[] = [
       status: "confidential",
       note: "Screenshots are not shown due to company ownership and confidentiality.",
     },
-    liveDemo: unavailableLiveDemo,
-    github: unavailableGithub,
     confidentialityNote:
       "Screenshots are not shown due to company ownership and confidentiality.",
   },
@@ -66,8 +50,6 @@ export const projects: ProjectItem[] = [
       status: "confidential",
       note: "Screenshots are not shown due to company ownership and confidentiality.",
     },
-    liveDemo: unavailableLiveDemo,
-    github: unavailableGithub,
     confidentialityNote:
       "Screenshots are not shown due to company ownership and confidentiality.",
   },
@@ -112,8 +94,6 @@ export const projects: ProjectItem[] = [
       { publicPath: "/images/projects/recyclens/scanner/16-gallery-picker.png", altText: "RecycLens gallery image picker" },
       { publicPath: "/images/projects/recyclens/overview/17-filipino-language-mode.png", altText: "RecycLens Filipino language mode" },
     ],
-    liveDemo: unavailableLiveDemo,
-    github: unavailableGithub,
   },
   {
     title: "Mirror Your World",
@@ -128,8 +108,6 @@ export const projects: ProjectItem[] = [
       note: "Screenshots are not included unless approved for portfolio use.",
       altText: "Screenshot of the Mirror Your World booking system",
     },
-    liveDemo: unavailableLiveDemo,
-    github: unavailableGithub,
     clientNote:
       "Client project. Screenshots are not included unless approved for portfolio use.",
   },
