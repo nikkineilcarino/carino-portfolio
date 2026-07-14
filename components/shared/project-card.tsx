@@ -25,14 +25,19 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           <div className="flex snap-x gap-3 overflow-x-auto pb-3" aria-label={`${project.title} screenshots`}>
             {project.screenshots.map((screenshot) => (
               <div
-                className="relative aspect-[1344/2992] w-36 shrink-0 snap-start overflow-hidden rounded-md border border-[#E4E4E7] bg-[#F4F4F5] sm:w-40"
+                className={cn(
+                  "relative shrink-0 snap-start overflow-hidden rounded-md border border-[#E4E4E7] bg-[#F4F4F5]",
+                  project.screenshotLayout === "landscape"
+                    ? "aspect-[16/10] w-72 sm:w-80"
+                    : "aspect-[1344/2992] w-36 sm:w-40",
+                )}
                 key={screenshot.publicPath}
               >
                 <Image
                   alt={screenshot.altText}
-                  className="object-contain"
+                  className="object-contain object-top"
                   fill
-                  sizes="160px"
+                  sizes={project.screenshotLayout === "landscape" ? "320px" : "160px"}
                   src={screenshot.publicPath}
                 />
               </div>

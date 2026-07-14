@@ -45,6 +45,7 @@ export type ProjectItem = {
     publicPath: string;
     altText: string;
   }>;
+  screenshotLayout?: "portrait" | "landscape";
   confidentialityNote?: string;
   clientNote?: string;
 };

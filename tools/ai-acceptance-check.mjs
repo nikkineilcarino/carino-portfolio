@@ -170,6 +170,30 @@ async function run() {
     assert(includesText(payload, "gamified Android application"), "RecycLens summary missing");
     assert(includesText(payload, "YOLOv8"), "RecycLens technology missing");
 
+    const jobBridge = await postQuestion("Tell me about JobBridge");
+    assert(
+      jobBridge.status === 200,
+      `JobBridge: expected HTTP 200, got ${jobBridge.status}`,
+    );
+    assert(
+      jobBridge.payload.message?.type === "project",
+      "JobBridge: expected project message",
+    );
+    for (const expected of [
+      "multi-role job matching platform",
+      "Laravel",
+      "Livewire",
+      "TypeScript",
+      "Applicant applications",
+      "Employer job posting",
+      "Administrator moderation",
+    ]) {
+      assert(
+        includesText(jobBridge.payload, expected),
+        `JobBridge: missing "${expected}"`,
+      );
+    }
+
     await assertTextAnswer("Did you build OneOPS alone?", [
       "did not own or build those projects alone",
       "internship-based support",

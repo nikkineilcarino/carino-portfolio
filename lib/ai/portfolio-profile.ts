@@ -176,12 +176,25 @@ export const portfolioProfile = {
     },
     {
       name: "JobBridge",
-      type: "Academic/personal web project",
+      type: "Academic web project",
       summary:
-        "A Laravel-based web application developed as part of my full-stack development experience.",
+        "A multi-role job matching platform that connects applicants and employers through hiring, communication, and contract workflows, with administrative moderation and analytics tools.",
       role: "Full-Stack Developer",
-      technologies: ["Laravel"],
-      features: [],
+      technologies: [
+        "Laravel",
+        "PHP",
+        "Livewire",
+        "React",
+        "TypeScript",
+        "Tailwind CSS",
+        "SQLite",
+      ],
+      features: [
+        "Public job discovery and talent browsing",
+        "Applicant applications, saved jobs, messages, profiles, and contracts",
+        "Employer job posting, applicant review, and shortlisting",
+        "Administrator moderation, disputes, analytics, and support workflows",
+      ],
     },
     {
       name: "Microblog",
