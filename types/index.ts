@@ -41,6 +41,10 @@ export type ProjectItem = {
   technologies: string[];
   description: string;
   screenshot: ImageStatus;
+  screenshots?: Array<{
+    publicPath: string;
+    altText: string;
+  }>;
   liveDemo: ActionLink;
   github: ActionLink;
   confidentialityNote?: string;

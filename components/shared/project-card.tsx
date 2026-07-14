@@ -35,7 +35,29 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
         className,
       )}
     >
-      {hasImage ? (
+      {project.screenshots?.length ? (
+        <div className="mb-5">
+          <div className="flex snap-x gap-3 overflow-x-auto pb-3" aria-label={`${project.title} screenshots`}>
+            {project.screenshots.map((screenshot) => (
+              <div
+                className="relative aspect-[1344/2992] w-36 shrink-0 snap-start overflow-hidden rounded-md border border-[#E4E4E7] bg-[#F4F4F5] sm:w-40"
+                key={screenshot.publicPath}
+              >
+                <Image
+                  alt={screenshot.altText}
+                  className="object-contain"
+                  fill
+                  sizes="160px"
+                  src={screenshot.publicPath}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-[#71717A]">
+            Scroll to explore all {project.screenshots.length} screenshots.
+          </p>
+        </div>
+      ) : hasImage ? (
         <div className="relative mb-5 aspect-[16/10] overflow-hidden rounded-md border border-[#E4E4E7] bg-[#F4F4F5]">
           <Image
             alt={project.screenshot.altText ?? ""}
